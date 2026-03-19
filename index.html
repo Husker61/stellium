@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Stellium – See the big picture. A modern news aggregator spanning the political spectrum.">
+  <title>Stellium – The Big Picture</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & Variables ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080b10; --surface: #0d1017; --card: #111620; --border: #1c2333;
+      --neon: #00f5c4; --neon2: #7b61ff; --neon3: #ff4f8b; --neon4: #ffb547; --neon5: #38bdf8;
+      --text: #e4e9f1; --muted: #525d72;
+      --font-head: 'Syne', sans-serif; --font-mono: 'DM Mono', monospace;
+    }
+
+    /* ── Base ── */
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh; background: var(--bg); color: var(--text);
+      font-family: var(--font-head); overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,196,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,196,.025) 1px, transparent 1px);
+      background-size: 48px 48px; pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; top: -40%; left: -20%; width: 80vw; height: 80vw;
+      background: radial-gradient(circle, rgba(0,245,196,.05) 0%, transparent 65%);
+      pointer-events: none; z-index: 0; animation: breathe 10s ease-in-out infinite alternate;
+    }
+    @keyframes breathe { from { transform: scale(1) translate(0,0); } to { transform: scale(1.15) translate(5%,5%); } }
+
+    /* ── Container ── */
+    .container {
+      position: relative; z-index: 1; max-width: 1600px;
+      margin: 0 auto; padding: clamp(16px,4vw,48px) clamp(16px,4vw,32px) 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 20px; padding-bottom: 20px; margin-bottom: 28px;
+      border-bottom: 1px solid var(--border); animation: fadeDown .5s ease both;
+    }
+    .header-left h1 {
+      font-size: clamp(1.8rem,5vw,3.2rem); font-weight: 800;
+      letter-spacing: -1px; line-height: 1.1;
+    }
+    .header-left h1 .accent { color: var(--neon); text-shadow: 0 0 20px rgba(0,245,196,.45); }
+    .tagline {
+      font-family: var(--font-mono); font-size: clamp(.75rem,2vw,.9rem);
+      color: var(--muted); margin-top: 6px; letter-spacing: .04em;
+    }
+    .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+    .clock {
+      font-family: var(--font-mono); font-size: clamp(1.1rem,3vw,1.4rem); font-weight: 500;
+      color: var(--neon); text-shadow: 0 0 14px rgba(0,245,196,.35); text-align: right;
+    }
+    .clock small {
+      display: block; font-size: clamp(.6rem,1.8vw,.7rem);
+      color: var(--muted); letter-spacing: .08em; margin-top: 3px;
+    }
+
+    /* ── Bias Selector ── */
+    .bias-selector {
+      display: inline-flex; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px; padding: 3px;
+    }
+    .bias-btn {
+      position: relative; background: transparent; border: none; border-radius: 9px;
+      padding: 8px 20px; cursor: pointer; font-family: var(--font-mono);
+      font-size: clamp(.72rem,1.5vw,.82rem); font-weight: 600; color: var(--muted);
+      transition: color .25s, background .25s, box-shadow .25s; white-space: nowrap;
+    }
+    .bias-btn:hover:not(.active) { color: var(--text); }
+    .bias-btn.active[data-bias="left"] {
+      color: #0a1628; background: var(--neon5); box-shadow: 0 0 16px rgba(56,189,248,.3);
+    }
+    .bias-btn.active[data-bias="center"] {
+      color: #0a1628; background: var(--neon); box-shadow: 0 0 16px rgba(0,245,196,.3);
+    }
+    .bias-btn.active[data-bias="right"] {
+      color: #0a1628; background: var(--neon3); box-shadow: 0 0 16px rgba(255,79,139,.3);
+    }
+
+    /* ── Breaking News ── */
+    .breaking-box {
+      display: flex; flex-direction: column; gap: 8px; position: relative;
+      background: var(--card); border: 1px solid rgba(255,79,139,.3); border-radius: 16px;
+      padding: clamp(18px,3vw,28px); margin-bottom: clamp(24px,4vw,36px);
+      text-decoration: none; color: inherit; overflow: hidden;
+      transition: transform .25s, box-shadow .25s, border-color .25s;
+    }
+    .breaking-box::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 20% 0%, rgba(255,79,139,.06), transparent 60%);
+      pointer-events: none;
+    }
+    .breaking-box:hover {
+      transform: translateY(-3px); border-color: var(--neon3);
+      box-shadow: 0 8px 40px rgba(255,79,139,.12);
+    }
+    .breaking-badge {
+      font-family: var(--font-mono); font-size: .65rem; font-weight: 700;
+      letter-spacing: .12em; color: var(--neon3); text-transform: uppercase;
+    }
+    .breaking-title {
+      font-size: clamp(1.15rem,3vw,1.5rem); font-weight: 700; line-height: 1.3; margin: 0;
+    }
+    .breaking-meta {
+      font-family: var(--font-mono); font-size: clamp(.65rem,1.8vw,.78rem);
+      color: var(--muted); display: flex; gap: 14px;
+    }
+    .breaking-arrow {
+      position: absolute; top: clamp(14px,2vw,22px); right: clamp(14px,2vw,22px);
+      font-size: 1.1rem; color: var(--muted); opacity: 0;
+      transform: translate(-4px,4px); transition: opacity .2s, transform .2s;
+    }
+    .breaking-box:hover .breaking-arrow {
+      opacity: 1; transform: translate(0,0); color: var(--neon3);
+    }
+
+    /* ── Sections ── */
+    main { display: flex; flex-direction: column; gap: clamp(24px,4vw,40px); }
+    .section { animation: fadeUp .5s ease both; }
+    .section-label {
+      font-family: var(--font-mono); font-size: clamp(.78rem,2vw,.92rem);
+      font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .sec-us  .section-label { color: var(--neon); }
+    .sec-int .section-label { color: var(--neon2); }
+    .sec-tech .section-label { color: var(--neon5); }
+    .sec-sci .section-label { color: var(--neon4); }
+
+    /* ── Grid ── */
+    .grid {
+      display: grid; gap: clamp(10px,2vw,14px);
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+    @media (min-width: 1200px) { .grid { grid-template-columns: repeat(6, 1fr); } }
+
+    /* ── Cards ── */
+    .card {
+      --accent: var(--neon); position: relative; background: var(--card);
+      border: 1px solid var(--border); border-radius: 14px;
+      padding: clamp(16px,2.5vw,22px) clamp(14px,2.5vw,20px) clamp(14px,2.5vw,18px);
+      cursor: pointer; text-decoration: none; color: inherit;
+      display: flex; flex-direction: column; gap: 6px; overflow: hidden;
+      transition: transform .25s, border-color .25s, box-shadow .25s;
+      min-height: 130px; animation: cardIn .4s ease both;
+    }
+    .card::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: 0;
+      transition: opacity .3s;
+      background: radial-gradient(circle at 50% 0%, var(--accent), transparent 70%);
+    }
+    .card:hover {
+      transform: translateY(-5px) scale(1.015); border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 10px 36px rgba(0,0,0,.45), 0 0 44px -10px var(--accent);
+    }
+    .card:hover::before { opacity: .1; }
+    .card-source {
+      font-family: var(--font-mono); font-size: clamp(.68rem,1.6vw,.78rem);
+      font-weight: 600; color: var(--accent); letter-spacing: .02em;
+    }
+    .card-title {
+      font-size: clamp(.88rem,2vw,1.02rem); font-weight: 600; line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card-time {
+      font-family: var(--font-mono); font-size: clamp(.6rem,1.5vw,.72rem);
+      color: var(--muted); margin-top: auto;
+    }
+    .card-arrow {
+      position: absolute; top: clamp(12px,2vw,16px); right: clamp(12px,2vw,16px);
+      font-size: clamp(.8rem,1.8vw,.95rem); color: var(--muted); opacity: 0;
+      transform: translate(-4px,4px); transition: opacity .2s, transform .2s;
+    }
+    .card:hover .card-arrow { opacity: 1; transform: translate(0,0); color: var(--accent); }
+
+    /* Section-specific card accents */
+    .sec-us  .card { --accent: var(--neon); }
+    .sec-int .card { --accent: var(--neon2); }
+    .sec-tech .card { --accent: var(--neon5); }
+    .sec-sci .card { --accent: var(--neon4); }
+
+    /* ── Skeleton Loading ── */
+    .skeleton {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 22px 20px; min-height: 130px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .skel-line {
+      background: var(--border); border-radius: 4px; height: 12px;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .skel-line.w30 { width: 30%; }
+    .skel-line.w45 { width: 45%; }
+    .skel-line.w60 { width: 60%; }
+    .skel-line.w90 { width: 90%; }
+    .skel-spacer { flex: 1; }
+    @keyframes pulse { 0%, 100% { opacity: .6; } 50% { opacity: .2; } }
+
+    /* ── Empty State ── */
+    .empty-state {
+      grid-column: 1 / -1; text-align: center; padding: 32px;
+      font-family: var(--font-mono); font-size: .85rem; color: var(--muted);
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: clamp(24px,4vw,40px); padding-top: 16px;
+      border-top: 1px solid var(--border); font-family: var(--font-mono);
+      font-size: .72rem; color: var(--muted); text-align: center;
+    }
+
+    /* ── Scroll to Top ── */
+    .scroll-top {
+      position: fixed; bottom: 28px; right: 28px; width: 42px; height: 42px;
+      border-radius: 50%; background: var(--card); border: 1px solid var(--border);
+      color: var(--neon); font-size: 1.1rem; cursor: pointer; z-index: 100;
+      opacity: 0; transform: translateY(16px);
+      transition: opacity .3s, transform .3s, border-color .25s, box-shadow .25s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .scroll-top.visible { opacity: 1; transform: translateY(0); }
+    .scroll-top:hover { border-color: var(--neon); box-shadow: 0 0 16px rgba(0,245,196,.2); }
+
+    /* ── Animations ── */
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeUp   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes cardIn   { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      header { flex-direction: column; align-items: center; text-align: center; }
+      .header-left { text-align: center; }
+      .header-right { align-items: center; }
+      .bias-selector { width: 100%; justify-content: center; }
+      .bias-btn { flex: 1; text-align: center; padding: 8px 14px; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    }
+    @media (max-width: 480px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-left">
+        <h1><span class="accent">Stellium</span></h1>
+        <p class="tagline">See the big picture.</p>
+      </div>
+      <div class="header-right">
+        <div class="clock" id="clock">
+          <span id="clock-time"></span>
+          <small id="clock-date"></small>
+        </div>
+        <nav class="bias-selector" role="tablist" aria-label="Political perspective">
+          <button class="bias-btn" data-bias="left" role="tab" aria-selected="false">Left</button>
+          <button class="bias-btn active" data-bias="center" role="tab" aria-selected="true">Center</button>
+          <button class="bias-btn" data-bias="right" role="tab" aria-selected="false">Right</button>
+        </nav>
+      </div>
+    </header>
+
+    <a id="breaking-box" class="breaking-box" href="#" target="_blank" rel="noopener" style="display:none">
+      <span class="breaking-badge">BREAKING</span>
+      <h2 id="breaking-title" class="breaking-title"></h2>
+      <div class="breaking-meta">
+        <span id="breaking-source"></span>
+        <span id="breaking-time"></span>
+      </div>
+      <span class="breaking-arrow">↗</span>
+    </a>
+
+    <main>
+      <section class="section sec-us">
+        <h2 class="section-label">U.S. News &amp; Politics</h2>
+        <div class="grid" id="us-grid"></div>
+      </section>
+
+      <section class="section sec-int">
+        <h2 class="section-label">International</h2>
+        <div class="grid" id="int-grid"></div>
+      </section>
+
+      <section class="section sec-tech">
+        <h2 class="section-label">Technology</h2>
+        <div class="grid" id="tech-grid"></div>
+      </section>
+
+      <section class="section sec-sci">
+        <h2 class="section-label">Science</h2>
+        <div class="grid" id="science-grid"></div>
+      </section>
+    </main>
+
+    <footer>
+      <span id="last-updated"></span>
+    </footer>
+  </div>
+
+  <button class="scroll-top" id="scroll-top" aria-label="Scroll to top">↑</button>
+
+  <script>
+    // ── Clock ──
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock-time').textContent =
+        now.toLocaleTimeString('en-US', { hour12: false });
+      document.getElementById('clock-date').textContent =
+        now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Feed Configuration ──
+    const feeds = {
+      us: {
+        right: [
+          { url: 'https://moxie.foxnews.com/google-publisher/latest.xml', name: 'Fox News' },
+          { url: 'https://www.newsmax.com/rss/Newsfront/16', name: 'Newsmax' },
+          { url: 'https://www.breitbart.com/feed/', name: 'Breitbart' },
+          { url: 'https://dailycaller.com/feed/', name: 'Daily Caller' },
+          { url: 'https://www.washingtontimes.com/rss/headlines/', name: 'Washington Times' },
+          { url: 'https://nypost.com/feed/', name: 'New York Post' }
+        ],
+        center: [
+          { url: 'https://www.reuters.com/arc/outboundfeeds/top-headlines/?outputType=xml', name: 'Reuters' },
+          { url: 'https://afs.google.com/dp-ap/rss', name: 'AP News' },
+          { url: 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
+          { url: 'https://www.usatoday.com/rss/news/nation/now-topstories.xml', name: 'USA Today' },
+          { url: 'https://axios.com/feed', name: 'Axios' },
+          { url: 'https://thehill.com/homenews/feed/', name: 'The Hill' }
+        ],
+        left: [
+          { url: 'https://www.cbsnews.com/latest/rss/main', name: 'CBS News' },
+          { url: 'http://feeds.nbcnews.com/nbcnews/public/news', name: 'NBC News' },
+          { url: 'https://feeds.abcnews.com/abcnews/politicsheadlines', name: 'ABC News' },
+          { url: 'https://rss.cnn.com/rss/cnn_topstories.rss', name: 'CNN' },
+          { url: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml', name: 'New York Times' },
+          { url: 'https://www.politico.com/rss/politicopicks.xml', name: 'POLITICO' }
+        ]
+      },
+      international: [
+        { url: 'http://feeds.bbci.co.uk/news/rss.xml', name: 'BBC News' },
+        { url: 'https://www.aljazeera.com/xml/rss/all.xml', name: 'Al Jazeera' },
+        { url: 'https://www.reuters.com/arc/outboundfeeds/world/?outputType=xml', name: 'Reuters World' },
+        { url: 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms', name: 'Times of India' }
+      ],
+      tech: [
+        { url: 'http://feeds.bbci.co.uk/news/technology/rss.xml', name: 'BBC Tech' },
+        { url: 'https://techcrunch.com/feed/', name: 'TechCrunch' },
+        { url: 'https://www.theverge.com/rss/index.xml', name: 'The Verge' },
+        { url: 'https://arstechnica.com/feed/', name: 'Ars Technica' },
+        { url: 'https://www.wired.com/feed/rss', name: 'WIRED' },
+        { url: 'https://www.engadget.com/rss.xml', name: 'Engadget' }
+      ],
+      science: [
+        { url: 'http://feeds.bbci.co.uk/news/science_and_environment/rss.xml', name: 'BBC Science' },
+        { url: 'https://rss.sciam.com/ScientificAmerican-Global', name: 'Scientific American' },
+        { url: 'https://www.nature.com/nature.rss', name: 'Nature' },
+        { url: 'https://www.science.org/rss/news_current.xml', name: 'Science Magazine' },
+        { url: 'https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp1ZEdvU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en', name: 'Google Science' },
+        { url: 'https://news.yahoo.com/rss/science', name: 'Yahoo Science' }
+      ]
+    };
+
+    // ── Utilities ──
+    function timeAgo(dateStr) {
+      if (!dateStr) return '';
+      const diff = Date.now() - new Date(dateStr).getTime();
+      if (diff < 0 || isNaN(diff)) return 'Just now';
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return mins + 'm ago';
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      const days = Math.floor(hrs / 24);
+      return days + 'd ago';
+    }
+
+    // ── Batch Feed Fetching (single request for all feeds) ──
+    async function fetchBatch(feedList) {
+      try {
+        const res = await fetch('/.netlify/functions/rss-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feeds: feedList })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch (err) {
+        console.warn('Batch fetch error:', err.message);
+        return {};
+      }
+    }
+
+    // ── DOM Creation (XSS-safe – uses textContent, never innerHTML for data) ──
+    function createCard(item, sourceName, index) {
+      const card = document.createElement('a');
+      card.className = 'card';
+      card.href = item.link || '#';
+      card.target = '_blank';
+      card.rel = 'noopener';
+      card.style.animationDelay = (index * 40) + 'ms';
+
+      const source = document.createElement('div');
+      source.className = 'card-source';
+      source.textContent = sourceName;
+
+      const title = document.createElement('div');
+      title.className = 'card-title';
+      title.textContent = item.title || 'Untitled';
+
+      const time = document.createElement('div');
+      time.className = 'card-time';
+      time.textContent = timeAgo(item.pubDate);
+
+      const arrow = document.createElement('span');
+      arrow.className = 'card-arrow';
+      arrow.textContent = '\u2197';
+
+      card.append(source, title, time, arrow);
+      return card;
+    }
+
+    function showSkeletons(gridId, count) {
+      const grid = document.getElementById(gridId);
+      grid.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement('div');
+        s.className = 'skeleton';
+        s.innerHTML = '<div class="skel-line w30"></div><div class="skel-line w90"></div><div class="skel-line w60"></div><div class="skel-spacer"></div><div class="skel-line w45"></div>';
+        grid.appendChild(s);
+      }
+    }
+
+    // ── Section Helpers ──
+    function collectItems(batchData, feedList, maxPerFeed) {
+      const allItems = [];
+      for (const f of feedList) {
+        const items = (batchData[f.name] || []).slice(0, maxPerFeed);
+        allItems.push(...items.map(item => ({ ...item, source: f.name })));
+      }
+      const seen = new Set();
+      return allItems.filter(item => {
+        const key = (item.title || '').trim().toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+    }
+
+    function renderSection(gridId, items, maxCards) {
+      const grid = document.getElementById(gridId);
+      grid.innerHTML = '';
+      if (items.length === 0) {
+        grid.innerHTML = '<div class="empty-state">No headlines available right now.</div>';
+        return [];
+      }
+      const displayed = items.slice(0, maxCards);
+      displayed.forEach((item, i) => grid.appendChild(createCard(item, item.source, i)));
+      return displayed;
+    }
+
+    // ── Breaking News ──
+    function showBreaking(items) {
+      const box = document.getElementById('breaking-box');
+      if (!items || items.length === 0) {
+        box.style.display = 'none';
+        return;
+      }
+      const top = items[0];
+      document.getElementById('breaking-title').textContent = top.title;
+      document.getElementById('breaking-source').textContent = top.source;
+      document.getElementById('breaking-time').textContent = timeAgo(top.pubDate);
+      box.href = top.link || '#';
+      box.style.display = 'flex';
+    }
+
+    // ── Bias Toggle ──
+    let currentBias = 'center';
+    const biasBtns = document.querySelectorAll('.bias-btn');
+
+    function setActiveBias(bias) {
+      biasBtns.forEach(btn => {
+        const active = btn.dataset.bias === bias;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', active);
+      });
+    }
+
+    biasBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const bias = btn.dataset.bias;
+        if (bias === currentBias) return;
+        currentBias = bias;
+        setActiveBias(bias);
+        loadDashboard(bias);
+      });
+    });
+
+    // ── Dashboard Orchestration (single batch request) ──
+    async function loadDashboard(bias) {
+      const usFeedList = feeds.us[bias] || feeds.us.center;
+
+      showSkeletons('us-grid', 12);
+      showSkeletons('int-grid', 6);
+      showSkeletons('tech-grid', 6);
+      showSkeletons('science-grid', 6);
+
+      const allFeeds = [...usFeedList, ...feeds.international, ...feeds.tech, ...feeds.science];
+      const batchData = await fetchBatch(allFeeds);
+
+      const usItems = collectItems(batchData, usFeedList, 3);
+      renderSection('us-grid', usItems, 12);
+      renderSection('int-grid', collectItems(batchData, feeds.international, 4), 6);
+      renderSection('tech-grid', collectItems(batchData, feeds.tech, 3), 6);
+      renderSection('science-grid', collectItems(batchData, feeds.science, 3), 6);
+
+      showBreaking(usItems);
+      document.getElementById('last-updated').textContent =
+        'Last updated ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // ── Scroll to Top ──
+    const scrollBtn = document.getElementById('scroll-top');
+    window.addEventListener('scroll', () => {
+      scrollBtn.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+    scrollBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // ── Scheduled Refresh ──
+    const REFRESH_HOURS = [7, 13, 19];
+    let lastRefreshHour = -1;
+    function checkScheduledRefresh() {
+      const hour = new Date().getHours();
+      if (REFRESH_HOURS.includes(hour) && hour !== lastRefreshHour) {
+        lastRefreshHour = hour;
+        loadDashboard(currentBias);
+      }
+    }
+    setInterval(() => {
+      if (document.visibilityState === 'visible') checkScheduledRefresh();
+    }, 60000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') checkScheduledRefresh();
+    });
+
+    // ── Init ──
+    loadDashboard('center');
+  </script>
+</body>
+</html>
