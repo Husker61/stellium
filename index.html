@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Stellium – See the big picture. Fast news from across the political spectrum.">
+  <meta name="theme-color" content="#080b10">
+  <title>Stellium – The Big Picture</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & Variables ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #06080d;
+      --surface: #0c0f18;
+      --card: #0f1320;
+      --card-hover: #141828;
+      --border: #1a2035;
+      --border-bright: #252d45;
+
+      --neon: #00f5c4;
+      --neon-dim: rgba(0,245,196,.12);
+      --neon2: #6c63ff;
+      --neon3: #ff3d6e;
+      --neon4: #ffb020;
+      --neon5: #2eb8fa;
+      --neon6: #a3e635;
+
+      --left-color: #2eb8fa;
+      --center-color: #00f5c4;
+      --right-color: #ff3d6e;
+
+      --text: #dce4f0;
+      --text-dim: #8a96ad;
+      --muted: #434e64;
+
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'Barlow', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+
+      --radius: 10px;
+      --radius-lg: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Background texture ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,196,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,196,.018) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Top accent bar ── */
+    .top-bar {
+      height: 3px;
+      background: linear-gradient(90deg, var(--left-color), var(--center-color), var(--right-color));
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ── Container ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 3vw, 36px) 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 24px;
+      padding: 18px 0 18px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+      animation: fadeDown .4s ease both;
+    }
+
+    .logo-wrap { display: flex; flex-direction: column; gap: 0; }
+
+    .logo {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      letter-spacing: 2px;
+      line-height: 1;
+      color: var(--neon);
+      text-shadow: 0 0 30px rgba(0,245,196,.4), 0 0 60px rgba(0,245,196,.15);
+    }
+
+    .tagline {
+      font-family: var(--font-mono);
+      font-size: clamp(.65rem, 1.5vw, .75rem);
+      color: var(--muted);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    /* ── Bias Selector (center of header) ── */
+    .bias-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .bias-label {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .bias-selector {
+      display: inline-flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 4px;
+      gap: 2px;
+    }
+    .bias-btn {
+      position: relative;
+      background: transparent;
+      border: none;
+      border-radius: 50px;
+      padding: 9px 28px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: clamp(.72rem, 1.4vw, .8rem);
+      font-weight: 500;
+      color: var(--text-dim);
+      transition: color .2s, background .2s;
+      white-space: nowrap;
+      letter-spacing: .04em;
+    }
+    .bias-btn:hover:not(.active) { color: var(--text); }
+
+    .bias-btn.active[data-bias="left"] {
+      background: var(--left-color);
+      color: #06080d;
+      font-weight: 600;
+    }
+    .bias-btn.active[data-bias="center"] {
+      background: var(--center-color);
+      color: #06080d;
+      font-weight: 600;
+    }
+    .bias-btn.active[data-bias="right"] {
+      background: var(--right-color);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* ── Clock ── */
+    .clock-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+    .clock-time {
+      font-family: var(--font-mono);
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      font-weight: 500;
+      color: var(--neon);
+      text-shadow: 0 0 12px rgba(0,245,196,.3);
+      line-height: 1;
+    }
+    .clock-date {
+      font-family: var(--font-mono);
+      font-size: clamp(.58rem, 1.5vw, .68rem);
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+
+    /* ── Ticker / Breaking strip ── */
+    .ticker-bar {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      height: 36px;
+      position: relative;
+    }
+    .ticker-label {
+      flex-shrink: 0;
+      background: var(--neon3);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 0 14px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      z-index: 2;
+    }
+    .ticker-label::after {
+      content: '';
+      position: absolute;
+      left: 70px;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(90deg, var(--neon3), transparent);
+    }
+    .ticker-track {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    .ticker-inner {
+      display: flex;
+      gap: 0;
+      white-space: nowrap;
+      animation: ticker-scroll 40s linear infinite;
+      will-change: transform;
+    }
+    .ticker-inner:hover { animation-play-state: paused; }
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--text-dim);
+      padding: 0 24px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .ticker-item:hover { color: var(--neon); }
+    .ticker-item::before {
+      content: '◆';
+      margin-right: 10px;
+      color: var(--neon3);
+      font-size: .5rem;
+    }
+    @keyframes ticker-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ── Main layout ── */
+    .page-body {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    /* ── Section headers ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 22px 0 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .section-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      flex-shrink: 0;
+    }
+    .sec-us .section-icon    { background: rgba(0,245,196,.12); color: var(--neon); }
+    .sec-int .section-icon   { background: rgba(108,99,255,.12); color: var(--neon2); }
+    .sec-tech .section-icon  { background: rgba(46,184,250,.12); color: var(--neon5); }
+    .sec-sci .section-icon   { background: rgba(255,176,32,.12); color: var(--neon4); }
+    .sec-odd .section-icon   { background: rgba(163,230,53,.12); color: var(--neon6); }
+
+    .section-name {
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 2.5vw, 1.45rem);
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+    .sec-us .section-name    { color: var(--neon); }
+    .sec-int .section-name   { color: var(--neon2); }
+    .sec-tech .section-name  { color: var(--neon5); }
+    .sec-sci .section-name   { color: var(--neon4); }
+    .sec-odd .section-name   { color: var(--neon6); }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .section-count {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      margin-bottom: 8px;
+    }
+    @media (min-width: 1100px) { .grid { grid-template-columns: repeat(6, 1fr); } }
+    @media (min-width: 700px) and (max-width: 1099px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+    /* ── Cards ── */
+    .card {
+      --accent: var(--neon);
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 16px 14px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      overflow: hidden;
+      transition: transform .2s ease, border-color .2s, box-shadow .2s, background .2s;
+      min-height: 120px;
+      animation: cardIn .35s ease both;
+    }
+    .card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-bright);
+      background: var(--card-hover);
+      box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px var(--border-bright);
+    }
+    .card:hover::after { opacity: 1; }
+
+    .card-source {
+      font-family: var(--font-mono);
+      font-size: .68rem;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .card-title {
+      font-size: .92rem;
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+    }
+    .card:hover .card-title { color: #fff; }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+    }
+    .card-time {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      color: var(--muted);
+    }
+    .card-arrow {
+      font-size: .8rem;
+      color: var(--muted);
+      opacity: 0;
+      transform: translate(-3px, 3px);
+      transition: opacity .15s, transform .15s, color .15s;
+    }
+    .card:hover .card-arrow {
+      opacity: 1;
+      transform: translate(0, 0);
+      color: var(--accent);
+    }
+
+    /* Section accent colors */
+    .sec-us  .card { --accent: var(--neon); }
+    .sec-int .card { --accent: var(--neon2); }
+    .sec-tech .card { --accent: var(--neon5); }
+    .sec-sci .card { --accent: var(--neon4); }
+    .sec-odd .card { --accent: var(--neon6); }
+
+    /* ── Breaking Story (hero) ── */
+    .breaking-hero {
+      display: none;
+      position: relative;
+      background: var(--card);
+      border: 1px solid rgba(255,61,110,.25);
+      border-radius: var(--radius-lg);
+      padding: clamp(20px,3vw,32px);
+      margin: 20px 0 8px;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+    .breaking-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--neon3), transparent);
+    }
+    .breaking-hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 0% 0%, rgba(255,61,110,.07), transparent 60%);
+      pointer-events: none;
+    }
+    .breaking-hero:hover {
+      border-color: var(--neon3);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(255,61,110,.1);
+    }
+    .breaking-inner {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .breaking-badge-wrap {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .breaking-badge {
+      background: var(--neon3);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: .6rem;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .breaking-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--neon3);
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,61,110,.6); }
+      50% { box-shadow: 0 0 0 8px rgba(255,61,110,0); }
+    }
+    .breaking-content { flex: 1; }
+    .breaking-title {
+      font-family: var(--font-body);
+      font-size: clamp(1.1rem, 2.5vw, 1.45rem);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .breaking-meta {
+      display: flex;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: .68rem;
+      color: var(--muted);
+    }
+    .breaking-source { color: var(--neon3); }
+    .breaking-cta {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--neon3);
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity .2s, transform .2s;
+      white-space: nowrap;
+    }
+    .breaking-hero:hover .breaking-cta {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .skel-line {
+      background: var(--border);
+      border-radius: 3px;
+      height: 10px;
+      animation: shimmer 1.6s ease-in-out infinite;
+    }
+    .skel-line.w25 { width: 25%; }
+    .skel-line.w40 { width: 40%; }
+    .skel-line.w75 { width: 75%; }
+    .skel-line.w90 { width: 90%; }
+    .skel-line.w60 { width: 60%; }
+    .skel-spacer { flex: 1; }
+    @keyframes shimmer {
+      0%, 100% { opacity: .5; }
+      50% { opacity: .15; }
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 20px;
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      color: var(--muted);
+    }
+    .empty-state::before { content: '⚠ '; }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 40px;
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-left {
+      font-family: var(--font-mono);
+      font-size: .68rem;
+      color: var(--muted);
+    }
+    .footer-left span { color: var(--text-dim); }
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--muted);
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--neon);
+      animation: pulse-ring 3s ease-in-out infinite;
+    }
+
+    /* ── Scroll to top ── */
+    .scroll-top {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border-bright);
+      color: var(--neon);
+      font-size: 1rem;
+      cursor: pointer;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .25s, transform .25s, border-color .2s, box-shadow .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .scroll-top.visible { opacity: 1; transform: translateY(0); }
+    .scroll-top:hover { border-color: var(--neon); box-shadow: 0 0 16px rgba(0,245,196,.2); }
+
+    /* ── Animations ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      header {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 14px;
+      }
+      .logo-wrap { align-items: center; }
+      .bias-wrap { width: 100%; }
+      .bias-selector { width: 100%; justify-content: center; }
+      .bias-btn { flex: 1; text-align: center; padding: 9px 12px; }
+      .clock-wrap { align-items: center; }
+      .breaking-cta { display: none; }
+      footer { flex-direction: column; align-items: center; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .breaking-inner { flex-direction: column; gap: 12px; }
+      .breaking-badge-wrap { flex-direction: row; align-items: center; }
+    }
+    @media (max-width: 360px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── View Toggle Button ── */
+    .view-toggle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .view-toggle-label {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .view-toggle {
+      display: inline-flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 4px;
+      gap: 2px;
+    }
+    .view-btn {
+      background: transparent;
+      border: none;
+      border-radius: 50px;
+      padding: 7px 16px;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      letter-spacing: .08em;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .view-btn.active {
+      background: var(--border-bright);
+      color: var(--text);
+    }
+    .view-btn:hover:not(.active) { color: var(--text); }
+
+    /* ── Compact View ── */
+    .compact-table {
+      width: 100%;
+      border-collapse: collapse;
+      display: none;
+    }
+    body.compact-mode .compact-table { display: table; }
+    body.compact-mode .grid { display: none; }
+
+    .compact-table thead th {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      padding: 0 10px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .compact-table thead th:first-child { padding-left: 0; }
+
+    .compact-row {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    .compact-row:hover { background: var(--card-hover); }
+    .compact-row td { padding: 7px 10px; vertical-align: middle; }
+    .compact-row td:first-child { padding-left: 0; }
+
+    .c-stripe {
+      width: 3px;
+      min-width: 3px;
+      padding: 0 !important;
+    }
+    .c-stripe-left  { background: var(--left-color); }
+    .c-stripe-center { background: var(--center-color); }
+    .c-stripe-right { background: var(--right-color); }
+
+    .c-source {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      min-width: 110px;
+      max-width: 110px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .c-headline {
+      font-size: .88rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .c-headline a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .c-headline a:hover { color: var(--neon); }
+
+    .c-badge {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      letter-spacing: .06em;
+      padding: 3px 8px;
+      border-radius: 50px;
+      white-space: nowrap;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .c-badge-politics { border-color: #2eb8fa44; color: var(--neon5); }
+    .c-badge-tech     { border-color: #a3e63544; color: var(--neon6); }
+    .c-badge-science  { border-color: #6c63ff44; color: var(--neon2); }
+    .c-badge-world    { border-color: #ffffff22; color: var(--muted); }
+    .c-badge-sports   { border-color: #ffb02044; color: var(--neon4); }
+    .c-badge-odd      { border-color: #ff3d6e44; color: var(--neon3); }
+
+    .c-time {
+      font-family: var(--font-mono);
+      font-size: .68rem;
+      color: var(--muted);
+      white-space: nowrap;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    /* ── Sports section accent ── */
+    .sec-sports .section-icon { filter: none; }
+
+    /* ── Legend strip (compact mode only) ── */
+    .compact-legend {
+      display: none;
+      gap: 20px;
+      margin-bottom: 16px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    body.compact-mode .compact-legend { display: flex; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--font-mono);
+      font-size: .68rem;
+      color: var(--muted);
+    }
+    .legend-pip {
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar"></div>
+
+  <div class="container">
+
+    <header>
+      <div class="logo-wrap">
+        <div class="logo">STELLIUM</div>
+        <div class="tagline">See the big picture.</div>
+      </div>
+
+      <div class="bias-wrap">
+        <div class="bias-label">Perspective</div>
+        <nav class="bias-selector" role="tablist" aria-label="Political perspective">
+          <button class="bias-btn" data-bias="left" role="tab" aria-selected="false">Left</button>
+          <button class="bias-btn active" data-bias="center" role="tab" aria-selected="true">Center</button>
+          <button class="bias-btn" data-bias="right" role="tab" aria-selected="false">Right</button>
+        </nav>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
+        <div class="clock-wrap">
+          <div class="clock-time" id="clock-time"></div>
+          <div class="clock-date" id="clock-date"></div>
+        </div>
+        <div class="view-toggle-wrap">
+          <div class="view-toggle-label">View</div>
+          <div class="view-toggle" role="group" aria-label="Display view">
+            <button class="view-btn active" id="view-cards" aria-pressed="true">⊞ Cards</button>
+            <button class="view-btn" id="view-compact" aria-pressed="false">≡ Compact</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Breaking ticker bar -->
+    <div class="ticker-bar" id="ticker-bar" style="display:none">
+      <div class="ticker-label">BREAKING</div>
+      <div class="ticker-track">
+        <div class="ticker-inner" id="ticker-inner"></div>
+      </div>
+    </div>
+
+    <!-- Breaking Hero Story -->
+    <a id="breaking-hero" class="breaking-hero" href="#" target="_blank" rel="noopener noreferrer">
+      <div class="breaking-inner">
+        <div class="breaking-badge-wrap">
+          <div class="breaking-badge">Breaking</div>
+          <div class="breaking-pulse"></div>
+        </div>
+        <div class="breaking-content">
+          <div id="breaking-title" class="breaking-title"></div>
+          <div class="breaking-meta">
+            <span id="breaking-source" class="breaking-source"></span>
+            <span id="breaking-time"></span>
+          </div>
+        </div>
+        <div class="breaking-cta">Read story ↗</div>
+      </div>
+    </a>
+
+    <!-- Compact mode bias legend -->
+    <div class="compact-legend">
+      <div class="legend-item"><div class="legend-pip" style="background:var(--left-color)"></div>Left-leaning</div>
+      <div class="legend-item"><div class="legend-pip" style="background:var(--center-color)"></div>Center</div>
+      <div class="legend-item"><div class="legend-pip" style="background:var(--right-color)"></div>Right-leaning</div>
+    </div>
+
+    <!-- Sections -->
+    <div class="page-body">
+
+      <section class="section sec-us" style="animation: fadeUp .5s ease .1s both">
+        <div class="section-header">
+          <div class="section-icon">🇺🇸</div>
+          <div class="section-name">U.S. NEWS &amp; POLITICS</div>
+          <div class="section-line"></div>
+          <div class="section-count" id="us-count"></div>
+        </div>
+        <div class="grid" id="us-grid"></div>
+        <table class="compact-table" id="us-compact"></table>
+      </section>
+
+      <section class="section sec-int" style="animation: fadeUp .5s ease .2s both">
+        <div class="section-header">
+          <div class="section-icon">🌐</div>
+          <div class="section-name">INTERNATIONAL</div>
+          <div class="section-line"></div>
+          <div class="section-count" id="int-count"></div>
+        </div>
+        <div class="grid" id="int-grid"></div>
+        <table class="compact-table" id="int-compact"></table>
+      </section>
+
+      <section class="section sec-tech" style="animation: fadeUp .5s ease .3s both">
+        <div class="section-header">
+          <div class="section-icon">⚡</div>
+          <div class="section-name">TECHNOLOGY</div>
+          <div class="section-line"></div>
+          <div class="section-count" id="tech-count"></div>
+        </div>
+        <div class="grid" id="tech-grid"></div>
+        <table class="compact-table" id="tech-compact"></table>
+      </section>
+
+      <section class="section sec-sci" style="animation: fadeUp .5s ease .4s both">
+        <div class="section-header">
+          <div class="section-icon">🔬</div>
+          <div class="section-name">SCIENCE</div>
+          <div class="section-line"></div>
+          <div class="section-count" id="sci-count"></div>
+        </div>
+        <div class="grid" id="science-grid"></div>
+        <table class="compact-table" id="science-compact"></table>
+      </section>
+
+      <section class="section sec-sports" style="animation: fadeUp .5s ease .45s both">
+        <div class="section-header">
+          <div class="section-icon">🏆</div>
+          <div class="section-name">SPORTS</div>
+          <div class="section-line"></div>
+          <div class="section-count" id="sports-count"></div>
+        </div>
+        <div class="grid" id="sports-grid"></div>
+        <table class="compact-table" id="sports-compact"></table>
+      </section>
+
+      <section class="section sec-odd" style="animation: fadeUp .5s ease .5s both">
+        <div class="section-header">
+          <div class="section-icon">🦄</div>
+          <div class="section-name">ODD NEWS</div>
+          <div class="section-line"></div>
+          <div class="section-count" id="odd-count"></div>
+        </div>
+        <div class="grid" id="odd-grid"></div>
+        <table class="compact-table" id="odd-compact"></table>
+      </section>
+
+    </div>
+
+    <footer>
+      <div class="footer-left">
+        Last updated <span id="last-updated">—</span>
+        &nbsp;·&nbsp; Refreshes at 7am, 1pm &amp; 7pm
+      </div>
+      <div class="footer-right">
+        <div class="status-dot"></div>
+        Live feeds · Stellium
+      </div>
+    </footer>
+
+  </div>
+
+  <button class="scroll-top" id="scroll-top" aria-label="Scroll to top">↑</button>
+
+  <script>
+    // ── Clock ──
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock-time').textContent =
+        now.toLocaleTimeString('en-US', { hour12: false });
+      document.getElementById('clock-date').textContent =
+        now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── localStorage Preferences ──
+    const PREFS_KEY = 'stellium_prefs';
+    function loadPrefs() {
+      try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; }
+    }
+    function savePrefs(obj) {
+      try { localStorage.setItem(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...obj })); } catch {}
+    }
+
+    // ── Feed Configuration ──
+    const feeds = {
+      us: {
+        right: [
+          { url: 'https://moxie.foxnews.com/google-publisher/latest.xml', name: 'Fox News' },
+          { url: 'https://www.newsmax.com/rss/Newsfront/16', name: 'Newsmax' },
+          { url: 'https://www.breitbart.com/feed/', name: 'Breitbart' },
+          { url: 'https://dailycaller.com/feed/', name: 'Daily Caller' },
+          { url: 'https://www.washingtontimes.com/rss/headlines/', name: 'Washington Times' },
+          { url: 'https://nypost.com/feed/', name: 'New York Post' }
+        ],
+        center: [
+          { url: 'https://www.reuters.com/arc/outboundfeeds/top-headlines/?outputType=xml', name: 'Reuters' },
+          { url: 'https://afs.google.com/dp-ap/rss', name: 'AP News' },
+          { url: 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en', name: 'Google News' },
+          { url: 'https://www.usatoday.com/rss/news/nation/now-topstories.xml', name: 'USA Today' },
+          { url: 'https://axios.com/feed', name: 'Axios' },
+          { url: 'https://thehill.com/homenews/feed/', name: 'The Hill' }
+        ],
+        left: [
+          { url: 'https://www.cbsnews.com/latest/rss/main', name: 'CBS News' },
+          { url: 'http://feeds.nbcnews.com/nbcnews/public/news', name: 'NBC News' },
+          { url: 'https://feeds.abcnews.com/abcnews/politicsheadlines', name: 'ABC News' },
+          { url: 'https://rss.cnn.com/rss/cnn_topstories.rss', name: 'CNN' },
+          { url: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml', name: 'New York Times' },
+          { url: 'https://www.politico.com/rss/politicopicks.xml', name: 'POLITICO' }
+        ]
+      },
+      international: [
+        { url: 'http://feeds.bbci.co.uk/news/rss.xml', name: 'BBC News' },
+        { url: 'https://www.aljazeera.com/xml/rss/all.xml', name: 'Al Jazeera' },
+        { url: 'https://www.reuters.com/arc/outboundfeeds/world/?outputType=xml', name: 'Reuters World' },
+        { url: 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms', name: 'Times of India' }
+      ],
+      tech: [
+        { url: 'http://feeds.bbci.co.uk/news/technology/rss.xml', name: 'BBC Tech' },
+        { url: 'https://techcrunch.com/feed/', name: 'TechCrunch' },
+        { url: 'https://www.theverge.com/rss/index.xml', name: 'The Verge' },
+        { url: 'https://arstechnica.com/feed/', name: 'Ars Technica' },
+        { url: 'https://www.wired.com/feed/rss', name: 'WIRED' },
+        { url: 'https://www.engadget.com/rss.xml', name: 'Engadget' }
+      ],
+      science: [
+        { url: 'http://feeds.bbci.co.uk/news/science_and_environment/rss.xml', name: 'BBC Science' },
+        { url: 'https://rss.sciam.com/ScientificAmerican-Global', name: 'Scientific American' },
+        { url: 'https://www.nature.com/nature.rss', name: 'Nature' },
+        { url: 'https://www.science.org/rss/news_current.xml', name: 'Science Magazine' },
+        { url: 'https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp1ZEdvU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en', name: 'Google Science' },
+        { url: 'https://news.yahoo.com/rss/science', name: 'Yahoo Science' }
+      ],
+      odd: [
+        { url: 'https://rss.upi.com/news/odd_news.rss', name: 'UPI Odd News' },
+        { url: 'https://www.oddee.com/feed/', name: 'Oddee' },
+        { url: 'https://news.yahoo.com/rss/odd', name: 'Yahoo Odd News' },
+        { url: 'https://feeds.apnews.com/rss/apf-oddities', name: 'AP Oddities' },
+        { url: 'https://news.google.com/rss/search?q=site:apnews.com+oddities+OR+bizarre+OR+weird&hl=en-US&gl=US&ceid=US:en', name: 'AP Strange News' },
+        { url: 'https://news.google.com/rss/search?q=site:news.yahoo.com+odd+OR+weird+OR+bizarre&hl=en-US&gl=US&ceid=US:en', name: 'Yahoo Strange News' },
+        { url: 'https://news.google.com/rss/search?q=weird+news&hl=en-US&gl=US&ceid=US:en', name: 'Weird News' },
+        { url: 'https://news.google.com/rss/search?q=odd+news+strange&hl=en-US&gl=US&ceid=US:en', name: 'Strange Stories' },
+        { url: 'https://news.google.com/rss/search?q=offbeat+news&hl=en-US&gl=US&ceid=US:en', name: 'Offbeat' },
+        { url: 'https://news.google.com/rss/search?q=bizarre+story&hl=en-US&gl=US&ceid=US:en', name: 'Bizarre' },
+        { url: 'https://news.google.com/rss/search?q=quirky+unusual+news&hl=en-US&gl=US&ceid=US:en', name: 'Quirky' },
+        { url: 'https://news.google.com/rss/search?q=viral+story+strange&hl=en-US&gl=US&ceid=US:en', name: 'Viral & Unusual' }
+      ],
+      sports: [
+        { url: 'https://news.google.com/rss/search?q=NFL+OR+NBA+OR+MLB+OR+NHL+sports&hl=en-US&gl=US&ceid=US:en', name: 'Google Sports' },
+        { url: 'https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp1ZEdvU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en', name: 'Sports Headlines' },
+        { url: 'https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml', name: 'NYT Sports' },
+        { url: 'https://feeds.abcnews.com/abcnews/sportsheadlines', name: 'ABC Sports' }
+      ]
+    };
+
+    // ── Utilities ──
+    function timeAgo(dateStr) {
+      if (!dateStr) return '';
+      const diff = Date.now() - new Date(dateStr).getTime();
+      if (diff < 0 || isNaN(diff)) return 'Just now';
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return mins + 'm ago';
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      return Math.floor(hrs / 24) + 'd ago';
+    }
+
+    // ── Batch Fetch ──
+    async function fetchBatch(feedList) {
+      try {
+        const res = await fetch('/.netlify/functions/rss-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feeds: feedList })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch (err) {
+        console.warn('Batch fetch error:', err.message);
+        return {};
+      }
+    }
+
+    // ── XSS-safe card creation ──
+    function createCard(item, sourceName, index) {
+      const card = document.createElement('a');
+      card.className = 'card';
+      card.href = item.link || '#';
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+      card.style.animationDelay = (index * 35) + 'ms';
+
+      const source = document.createElement('div');
+      source.className = 'card-source';
+      source.textContent = sourceName;
+
+      const title = document.createElement('div');
+      title.className = 'card-title';
+      title.textContent = item.title || 'Untitled';
+
+      const footer = document.createElement('div');
+      footer.className = 'card-footer';
+
+      const time = document.createElement('div');
+      time.className = 'card-time';
+      time.textContent = timeAgo(item.pubDate);
+
+      const arrow = document.createElement('span');
+      arrow.className = 'card-arrow';
+      arrow.textContent = '↗';
+
+      footer.append(time, arrow);
+      card.append(source, title, footer);
+      return card;
+    }
+
+    function showSkeletons(gridId, count) {
+      const grid = document.getElementById(gridId);
+      grid.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement('div');
+        s.className = 'skeleton';
+        s.innerHTML = '<div class="skel-line w25"></div><div class="skel-line w90"></div><div class="skel-line w75"></div><div class="skel-spacer"></div><div class="skel-line w40"></div>';
+        grid.appendChild(s);
+      }
+    }
+
+    function collectItems(batchData, feedList, maxPerFeed) {
+      const allItems = [];
+      for (const f of feedList) {
+        const items = (batchData[f.name] || []).slice(0, maxPerFeed);
+        allItems.push(...items.map(item => ({ ...item, source: f.name })));
+      }
+      const seen = new Set();
+      return allItems.filter(item => {
+        const key = (item.title || '').trim().toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+    }
+
+    function renderSection(gridId, countId, items, maxCards) {
+      const grid = document.getElementById(gridId);
+      grid.innerHTML = '';
+      if (items.length === 0) {
+        grid.innerHTML = '<div class="empty-state">No headlines available right now.</div>';
+        if (countId) document.getElementById(countId).textContent = '';
+        return [];
+      }
+      const displayed = items.slice(0, maxCards);
+      displayed.forEach((item, i) => grid.appendChild(createCard(item, item.source, i)));
+      if (countId) {
+        document.getElementById(countId).textContent = displayed.length + ' stories';
+      }
+      return displayed;
+    }
+
+    // ── Breaking hero + ticker ──
+    function showBreaking(items) {
+      const hero = document.getElementById('breaking-hero');
+      const tickerBar = document.getElementById('ticker-bar');
+      const tickerInner = document.getElementById('ticker-inner');
+
+      if (!items || items.length === 0) {
+        hero.style.display = 'none';
+        tickerBar.style.display = 'none';
+        return;
+      }
+
+      // Hero = top story
+      const top = items[0];
+      document.getElementById('breaking-title').textContent = top.title;
+      document.getElementById('breaking-source').textContent = top.source;
+      document.getElementById('breaking-time').textContent = timeAgo(top.pubDate);
+      hero.href = top.link || '#';
+      hero.style.display = 'block';
+
+      // Ticker = next N stories (repeated for seamless loop)
+      const tickerItems = items.slice(1, 7);
+      if (tickerItems.length > 0) {
+        tickerBar.style.display = 'flex';
+        // Duplicate for seamless loop
+        const all = [...tickerItems, ...tickerItems];
+        tickerInner.innerHTML = '';
+        all.forEach(item => {
+          const a = document.createElement('a');
+          a.className = 'ticker-item';
+          a.href = item.link || '#';
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.textContent = item.title;
+          tickerInner.appendChild(a);
+        });
+      } else {
+        tickerBar.style.display = 'none';
+      }
+    }
+
+    // ── Sports keyword classifier ──
+    const SPORTS_KEYWORDS = [
+      'nfl','nba','mlb','nhl','nascar','mls','wnba','ncaa','espn',
+      'super bowl','world series','stanley cup','nba finals','playoff',
+      'championship','quarterback','touchdown','home run','slam dunk',
+      'trade deadline','draft pick','roster','batting','pitching',
+      'touchdown','linebacker','shortstop','goalie','hat trick',
+      'tennis','golf','pga','masters','wimbledon','us open','french open',
+      'soccer','football','basketball','baseball','hockey','boxing','mma','ufc',
+      'coach fired','head coach','contract extension','free agent'
+    ];
+    function isSports(title) {
+      const t = (title || '').toLowerCase();
+      return SPORTS_KEYWORDS.some(k => t.includes(k));
+    }
+
+    // ── Bias stripe class for compact view ──
+    const BIAS_STRIPE = { left: 'c-stripe-left', center: 'c-stripe-center', right: 'c-stripe-right' };
+
+    // ── Build compact table rows ──
+    function buildCompactTable(tableEl, items, badgeClass, currentBiasForStripe) {
+      tableEl.innerHTML = '';
+      if (!items.length) return;
+      const thead = document.createElement('thead');
+      thead.innerHTML = '<tr><th style="width:3px"></th><th style="width:110px">Source</th><th>Headline</th><th style="width:80px">Category</th><th style="width:52px">Time</th></tr>';
+      tableEl.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      items.forEach(item => {
+        const stripe = BIAS_STRIPE[item.biasSide || currentBiasForStripe || 'center'];
+        const tr = document.createElement('tr');
+        tr.className = 'compact-row';
+        const tdStripe = document.createElement('td');
+        tdStripe.className = 'c-stripe ' + stripe;
+        const tdSource = document.createElement('td');
+        tdSource.className = 'c-source';
+        tdSource.textContent = item.source;
+        const tdTitle = document.createElement('td');
+        tdTitle.className = 'c-headline';
+        const a = document.createElement('a');
+        a.href = item.link || '#';
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = item.title || 'Untitled';
+        tdTitle.appendChild(a);
+        const tdBadge = document.createElement('td');
+        const badge = document.createElement('span');
+        badge.className = 'c-badge ' + badgeClass;
+        badge.textContent = item.badgeLabel || badgeClass.replace('c-badge-','');
+        tdBadge.appendChild(badge);
+        const tdTime = document.createElement('td');
+        tdTime.className = 'c-time';
+        tdTime.textContent = timeAgo(item.pubDate);
+        tr.append(tdStripe, tdSource, tdTitle, tdBadge, tdTime);
+        tbody.appendChild(tr);
+      });
+      tableEl.appendChild(tbody);
+    }
+
+    // ── View mode ──
+    let currentView = loadPrefs().view || 'cards';
+    function applyView(view) {
+      currentView = view;
+      document.body.classList.toggle('compact-mode', view === 'compact');
+      document.getElementById('view-cards').classList.toggle('active', view === 'cards');
+      document.getElementById('view-compact').classList.toggle('active', view === 'compact');
+      document.getElementById('view-cards').setAttribute('aria-pressed', view === 'cards');
+      document.getElementById('view-compact').setAttribute('aria-pressed', view === 'compact');
+      savePrefs({ view });
+    }
+    document.getElementById('view-cards').addEventListener('click', () => applyView('cards'));
+    document.getElementById('view-compact').addEventListener('click', () => applyView('compact'));
+
+    // ── Bias toggle ──
+    let currentBias = loadPrefs().bias || 'center';
+    const biasBtns = document.querySelectorAll('.bias-btn');
+
+    function setActiveBias(bias) {
+      biasBtns.forEach(btn => {
+        const active = btn.dataset.bias === bias;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', active);
+      });
+    }
+
+    biasBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const bias = btn.dataset.bias;
+        if (bias === currentBias) return;
+        currentBias = bias;
+        setActiveBias(bias);
+        savePrefs({ bias });
+        loadDashboard(bias);
+      });
+    });
+
+    // ── Dashboard load ──
+    async function loadDashboard(bias) {
+      const usFeedList = feeds.us[bias] || feeds.us.center;
+
+      showSkeletons('us-grid', 12);
+      showSkeletons('int-grid', 6);
+      showSkeletons('tech-grid', 6);
+      showSkeletons('science-grid', 6);
+      showSkeletons('odd-grid', 6);
+      showSkeletons('sports-grid', 6);
+      document.getElementById('us-count').textContent = '';
+      document.getElementById('int-count').textContent = '';
+      document.getElementById('tech-count').textContent = '';
+      document.getElementById('sci-count').textContent = '';
+      document.getElementById('odd-count').textContent = '';
+      document.getElementById('sports-count').textContent = '';
+
+      const allFeeds = [...usFeedList, ...feeds.international, ...feeds.tech, ...feeds.science, ...feeds.odd, ...feeds.sports];
+      const batchData = await fetchBatch(allFeeds);
+
+      // Tag US items with biasSide so compact stripes work
+      const rawUs = collectItems(batchData, usFeedList, 3).map(item => ({ ...item, biasSide: bias }));
+
+      // Filter sports items out of US feed; send to sports bucket
+      const sportsFromUs = rawUs.filter(item => isSports(item.title));
+      const usItems = rawUs.filter(item => !isSports(item.title));
+
+      // Dedicated sports feeds
+      const dedicatedSports = collectItems(batchData, feeds.sports, 3).map(item => ({ ...item, biasSide: 'center', badgeLabel: 'Sports' }));
+
+      // Merge sports, deduplicate
+      const seenSports = new Set();
+      const allSportsItems = [...sportsFromUs, ...dedicatedSports].filter(item => {
+        const key = (item.title || '').trim().toLowerCase();
+        if (seenSports.has(key)) return false;
+        seenSports.add(key);
+        return true;
+      });
+
+      const intItems = collectItems(batchData, feeds.international, 4).map(i => ({ ...i, biasSide: 'center' }));
+      const techItems = collectItems(batchData, feeds.tech, 3).map(i => ({ ...i, biasSide: 'center' }));
+      const sciItems = collectItems(batchData, feeds.science, 3).map(i => ({ ...i, biasSide: 'center' }));
+      const oddItems = collectItems(batchData, feeds.odd, 3).map(i => ({ ...i, biasSide: 'center' }));
+
+      renderSection('us-grid', 'us-count', usItems, 12);
+      renderSection('int-grid', 'int-count', intItems, 6);
+      renderSection('tech-grid', 'tech-count', techItems, 6);
+      renderSection('science-grid', 'sci-count', sciItems, 6);
+      renderSection('odd-grid', 'odd-count', oddItems, 6);
+      renderSection('sports-grid', 'sports-count', allSportsItems, 8);
+
+      // Compact tables
+      buildCompactTable(document.getElementById('us-compact'), usItems.slice(0,16), 'c-badge-politics', bias);
+      buildCompactTable(document.getElementById('int-compact'), intItems.slice(0,8), 'c-badge-world', 'center');
+      buildCompactTable(document.getElementById('tech-compact'), techItems.slice(0,8), 'c-badge-tech', 'center');
+      buildCompactTable(document.getElementById('science-compact'), sciItems.slice(0,8), 'c-badge-science', 'center');
+      buildCompactTable(document.getElementById('odd-compact'), oddItems.slice(0,8), 'c-badge-odd', 'center');
+      buildCompactTable(document.getElementById('sports-compact'), allSportsItems.slice(0,10), 'c-badge-sports', 'center');
+
+      showBreaking(usItems);
+
+      const now = new Date();
+      document.getElementById('last-updated').textContent =
+        now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // ── Scroll to top ──
+    const scrollBtn = document.getElementById('scroll-top');
+    window.addEventListener('scroll', () => {
+      scrollBtn.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+    scrollBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // ── Scheduled refresh ──
+    const REFRESH_HOURS = [7, 13, 19];
+    let lastRefreshHour = -1;
+    function checkScheduledRefresh() {
+      const hour = new Date().getHours();
+      if (REFRESH_HOURS.includes(hour) && hour !== lastRefreshHour) {
+        lastRefreshHour = hour;
+        loadDashboard(currentBias);
+      }
+    }
+    setInterval(() => {
+      if (document.visibilityState === 'visible') checkScheduledRefresh();
+    }, 60000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') checkScheduledRefresh();
+    });
+
+    // ── Init ──
+    const savedPrefs = loadPrefs();
+    if (savedPrefs.bias) { currentBias = savedPrefs.bias; setActiveBias(savedPrefs.bias); }
+    if (savedPrefs.view) { applyView(savedPrefs.view); }
+    loadDashboard(currentBias);
+  </script>
+</body>
+</html>
