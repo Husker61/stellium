@@ -774,7 +774,7 @@
     .c-badge-tech     { border-color: #a3e63544; color: var(--neon6); }
     .c-badge-science  { border-color: #6c63ff44; color: var(--neon2); }
     .c-badge-world    { border-color: #ffffff22; color: var(--muted); }
-    .c-badge-sports   { border-color: #ffb02044; color: var(--neon4); }
+    .c-badge-trucking { border-color: #ffb02044; color: var(--neon4); }
     .c-badge-odd      { border-color: #ff3d6e44; color: var(--neon3); }
 
     .c-time {
@@ -786,8 +786,8 @@
       text-align: right;
     }
 
-    /* ── Sports section accent ── */
-    .sec-sports .section-icon { filter: none; }
+    /* ── Trucking section accent ── */
+    .sec-trucking .section-icon { filter: none; }
 
     /* ── Legend strip (compact mode only) ── */
     .compact-legend {
@@ -929,15 +929,15 @@
         <table class="compact-table" id="science-compact"></table>
       </section>
 
-      <section class="section sec-sports" style="animation: fadeUp .5s ease .45s both">
+      <section class="section sec-trucking" style="animation: fadeUp .5s ease .45s both">
         <div class="section-header">
-          <div class="section-icon">🏆</div>
-          <div class="section-name">SPORTS</div>
+          <div class="section-icon">🚛</div>
+          <div class="section-name">TRUCKING</div>
           <div class="section-line"></div>
-          <div class="section-count" id="sports-count"></div>
+          <div class="section-count" id="trucking-count"></div>
         </div>
-        <div class="grid" id="sports-grid"></div>
-        <table class="compact-table" id="sports-compact"></table>
+        <div class="grid" id="trucking-grid"></div>
+        <table class="compact-table" id="trucking-compact"></table>
       </section>
 
       <section class="section sec-odd" style="animation: fadeUp .5s ease .5s both">
@@ -1053,11 +1053,13 @@
         { url: 'https://news.google.com/rss/search?q=quirky+unusual+news&hl=en-US&gl=US&ceid=US:en', name: 'Quirky' },
         { url: 'https://news.google.com/rss/search?q=viral+story+strange&hl=en-US&gl=US&ceid=US:en', name: 'Viral & Unusual' }
       ],
-      sports: [
-        { url: 'https://news.google.com/rss/search?q=NFL+OR+NBA+OR+MLB+OR+NHL+sports&hl=en-US&gl=US&ceid=US:en', name: 'Google Sports' },
-        { url: 'https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp1ZEdvU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en', name: 'Sports Headlines' },
-        { url: 'https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml', name: 'NYT Sports' },
-        { url: 'https://feeds.abcnews.com/abcnews/sportsheadlines', name: 'ABC Sports' }
+      trucking: [
+        { url: 'https://news.google.com/rss/search?q=%22class+8%22+truck+OR+trucks&hl=en-US&gl=US&ceid=US:en', name: 'Class 8 Trucks' },
+        { url: 'https://news.google.com/rss/search?q=%22class+8%22+orders+OR+sales+OR+production+OR+backlog&hl=en-US&gl=US&ceid=US:en', name: 'Class 8 Market' },
+        { url: 'https://news.google.com/rss/search?q=Freightliner+OR+Peterbilt+OR+Kenworth+OR+%22Volvo+Trucks%22+OR+%22Mack+Trucks%22+OR+%22International+Motors%22+OR+Navistar&hl=en-US&gl=US&ceid=US:en', name: 'Truck OEMs' },
+        { url: 'https://news.google.com/rss/search?q=site:ccjdigital.com+OR+site:fleetowner.com+OR+site:overdriveonline.com&hl=en-US&gl=US&ceid=US:en', name: 'Trucking Trade Press' },
+        { url: 'https://www.ttnews.com/rss.xml', name: 'Transport Topics' },
+        { url: 'https://www.freightwaves.com/news/feed', name: 'FreightWaves' }
       ]
     };
 
@@ -1206,20 +1208,16 @@
       }
     }
 
-    // ── Sports keyword classifier ──
-    const SPORTS_KEYWORDS = [
-      'nfl','nba','mlb','nhl','nascar','mls','wnba','ncaa','espn',
-      'super bowl','world series','stanley cup','nba finals','playoff',
-      'championship','quarterback','touchdown','home run','slam dunk',
-      'trade deadline','draft pick','roster','batting','pitching',
-      'touchdown','linebacker','shortstop','goalie','hat trick',
-      'tennis','golf','pga','masters','wimbledon','us open','french open',
-      'soccer','football','basketball','baseball','hockey','boxing','mma','ufc',
-      'coach fired','head coach','contract extension','free agent'
+    // ── Trucking keyword classifier ──
+    const TRUCKING_KEYWORDS = [
+      'class 8','class-8','semi truck','semi-truck','tractor-trailer','big rig',
+      'heavy-duty truck','heavy duty truck','trucking','truckload','truck driver',
+      'freightliner','peterbilt','kenworth','volvo trucks','mack trucks','navistar',
+      'international motors','daimler truck','paccar','cummins','fmcsa'
     ];
-    function isSports(title) {
+    function isTrucking(title) {
       const t = (title || '').toLowerCase();
-      return SPORTS_KEYWORDS.some(k => t.includes(k));
+      return TRUCKING_KEYWORDS.some(k => t.includes(k));
     }
 
     // ── Bias stripe class for compact view ──
@@ -1310,33 +1308,33 @@
       showSkeletons('tech-grid', 6);
       showSkeletons('science-grid', 6);
       showSkeletons('odd-grid', 6);
-      showSkeletons('sports-grid', 6);
+      showSkeletons('trucking-grid', 6);
       document.getElementById('us-count').textContent = '';
       document.getElementById('int-count').textContent = '';
       document.getElementById('tech-count').textContent = '';
       document.getElementById('sci-count').textContent = '';
       document.getElementById('odd-count').textContent = '';
-      document.getElementById('sports-count').textContent = '';
+      document.getElementById('trucking-count').textContent = '';
 
-      const allFeeds = [...usFeedList, ...feeds.international, ...feeds.tech, ...feeds.science, ...feeds.odd, ...feeds.sports];
+      const allFeeds = [...usFeedList, ...feeds.international, ...feeds.tech, ...feeds.science, ...feeds.odd, ...feeds.trucking];
       const batchData = await fetchBatch(allFeeds);
 
       // Tag US items with biasSide so compact stripes work
       const rawUs = collectItems(batchData, usFeedList, 3).map(item => ({ ...item, biasSide: bias }));
 
-      // Filter sports items out of US feed; send to sports bucket
-      const sportsFromUs = rawUs.filter(item => isSports(item.title));
-      const usItems = rawUs.filter(item => !isSports(item.title));
+      // Pull trucking stories out of the US feed into the trucking bucket
+      const truckingFromUs = rawUs.filter(item => isTrucking(item.title));
+      const usItems = rawUs.filter(item => !isTrucking(item.title));
 
-      // Dedicated sports feeds
-      const dedicatedSports = collectItems(batchData, feeds.sports, 3).map(item => ({ ...item, biasSide: 'center', badgeLabel: 'Sports' }));
+      // Dedicated trucking feeds
+      const dedicatedTrucking = collectItems(batchData, feeds.trucking, 3).map(item => ({ ...item, biasSide: 'center', badgeLabel: 'Trucking' }));
 
-      // Merge sports, deduplicate
-      const seenSports = new Set();
-      const allSportsItems = [...sportsFromUs, ...dedicatedSports].filter(item => {
+      // Merge trucking, deduplicate
+      const seenTrucking = new Set();
+      const allTruckingItems = [...truckingFromUs, ...dedicatedTrucking].filter(item => {
         const key = (item.title || '').trim().toLowerCase();
-        if (seenSports.has(key)) return false;
-        seenSports.add(key);
+        if (seenTrucking.has(key)) return false;
+        seenTrucking.add(key);
         return true;
       });
 
@@ -1350,7 +1348,7 @@
       renderSection('tech-grid', 'tech-count', techItems, 6);
       renderSection('science-grid', 'sci-count', sciItems, 6);
       renderSection('odd-grid', 'odd-count', oddItems, 6);
-      renderSection('sports-grid', 'sports-count', allSportsItems, 6);
+      renderSection('trucking-grid', 'trucking-count', allTruckingItems, 6);
 
       // Compact tables
       buildCompactTable(document.getElementById('us-compact'), usItems.slice(0,16), 'c-badge-politics', bias);
@@ -1358,7 +1356,7 @@
       buildCompactTable(document.getElementById('tech-compact'), techItems.slice(0,8), 'c-badge-tech', 'center');
       buildCompactTable(document.getElementById('science-compact'), sciItems.slice(0,8), 'c-badge-science', 'center');
       buildCompactTable(document.getElementById('odd-compact'), oddItems.slice(0,8), 'c-badge-odd', 'center');
-      buildCompactTable(document.getElementById('sports-compact'), allSportsItems.slice(0,8), 'c-badge-sports', 'center');
+      buildCompactTable(document.getElementById('trucking-compact'), allTruckingItems.slice(0,8), 'c-badge-trucking', 'center');
 
       showBreaking(usItems);
 
