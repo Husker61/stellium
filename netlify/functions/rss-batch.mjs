@@ -7,7 +7,8 @@ const ALLOWED_HOSTS = new Set([
   'timesofindia.indiatimes.com', 'techcrunch.com', 'www.theverge.com',
   'arstechnica.com', 'www.wired.com', 'www.engadget.com', 'rss.sciam.com',
   'www.nature.com', 'www.science.org', 'news.yahoo.com',
-  'rss.upi.com', 'www.oddee.com', 'feeds.apnews.com'
+  'rss.upi.com', 'www.oddee.com', 'feeds.apnews.com',
+  'www.ttnews.com', 'www.freightwaves.com'
 ]);
 
 const FETCH_TIMEOUT = 6000;
