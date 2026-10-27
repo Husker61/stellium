@@ -5,8 +5,8 @@ const ALLOWED_HOSTS = new Set([
   'www.cbsnews.com', 'feeds.nbcnews.com', 'feeds.abcnews.com', 'rss.cnn.com',
   'rss.nytimes.com', 'www.politico.com', 'feeds.bbci.co.uk', 'www.aljazeera.com',
   'timesofindia.indiatimes.com', 'techcrunch.com', 'www.theverge.com',
-  'arstechnica.com', 'www.wired.com', 'www.engadget.com', 'rss.sciam.com',
-  'www.nature.com', 'www.science.org', 'news.yahoo.com',
+  'arstechnica.com', 'www.wired.com', 'www.engadget.com',
+  'news.yahoo.com',
   'rss.upi.com', 'www.oddee.com', 'feeds.apnews.com',
   'www.ttnews.com', 'www.freightwaves.com'
 ]);
