@@ -296,7 +296,6 @@
     .sec-us .section-icon    { background: rgba(0,245,196,.12); color: var(--neon); }
     .sec-int .section-icon   { background: rgba(108,99,255,.12); color: var(--neon2); }
     .sec-tech .section-icon  { background: rgba(46,184,250,.12); color: var(--neon5); }
-    .sec-sci .section-icon   { background: rgba(255,176,32,.12); color: var(--neon4); }
     .sec-odd .section-icon   { background: rgba(163,230,53,.12); color: var(--neon6); }
 
     .section-name {
@@ -308,7 +307,6 @@
     .sec-us .section-name    { color: var(--neon); }
     .sec-int .section-name   { color: var(--neon2); }
     .sec-tech .section-name  { color: var(--neon5); }
-    .sec-sci .section-name   { color: var(--neon4); }
     .sec-odd .section-name   { color: var(--neon6); }
 
     .section-line {
@@ -419,7 +417,6 @@
     .sec-us  .card { --accent: var(--neon); }
     .sec-int .card { --accent: var(--neon2); }
     .sec-tech .card { --accent: var(--neon5); }
-    .sec-sci .card { --accent: var(--neon4); }
     .sec-odd .card { --accent: var(--neon6); }
 
     /* ── Breaking Story (hero) ── */
@@ -772,7 +769,6 @@
     }
     .c-badge-politics { border-color: #2eb8fa44; color: var(--neon5); }
     .c-badge-tech     { border-color: #a3e63544; color: var(--neon6); }
-    .c-badge-science  { border-color: #6c63ff44; color: var(--neon2); }
     .c-badge-world    { border-color: #ffffff22; color: var(--muted); }
     .c-badge-trucking { border-color: #ffb02044; color: var(--neon4); }
     .c-badge-odd      { border-color: #ff3d6e44; color: var(--neon3); }
@@ -918,17 +914,6 @@
         <table class="compact-table" id="tech-compact"></table>
       </section>
 
-      <section class="section sec-sci" style="animation: fadeUp .5s ease .4s both">
-        <div class="section-header">
-          <div class="section-icon">🔬</div>
-          <div class="section-name">SCIENCE</div>
-          <div class="section-line"></div>
-          <div class="section-count" id="sci-count"></div>
-        </div>
-        <div class="grid" id="science-grid"></div>
-        <table class="compact-table" id="science-compact"></table>
-      </section>
-
       <section class="section sec-trucking" style="animation: fadeUp .5s ease .45s both">
         <div class="section-header">
           <div class="section-icon">🚛</div>
@@ -1030,14 +1015,6 @@
         { url: 'https://arstechnica.com/feed/', name: 'Ars Technica' },
         { url: 'https://www.wired.com/feed/rss', name: 'WIRED' },
         { url: 'https://www.engadget.com/rss.xml', name: 'Engadget' }
-      ],
-      science: [
-        { url: 'http://feeds.bbci.co.uk/news/science_and_environment/rss.xml', name: 'BBC Science' },
-        { url: 'https://rss.sciam.com/ScientificAmerican-Global', name: 'Scientific American' },
-        { url: 'https://www.nature.com/nature.rss', name: 'Nature' },
-        { url: 'https://www.science.org/rss/news_current.xml', name: 'Science Magazine' },
-        { url: 'https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp1ZEdvU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en', name: 'Google Science' },
-        { url: 'https://news.yahoo.com/rss/science', name: 'Yahoo Science' }
       ],
       odd: [
         { url: 'https://rss.upi.com/news/odd_news.rss', name: 'UPI Odd News' },
@@ -1306,17 +1283,15 @@
       showSkeletons('us-grid', 12);
       showSkeletons('int-grid', 6);
       showSkeletons('tech-grid', 6);
-      showSkeletons('science-grid', 6);
       showSkeletons('odd-grid', 6);
       showSkeletons('trucking-grid', 6);
       document.getElementById('us-count').textContent = '';
       document.getElementById('int-count').textContent = '';
       document.getElementById('tech-count').textContent = '';
-      document.getElementById('sci-count').textContent = '';
       document.getElementById('odd-count').textContent = '';
       document.getElementById('trucking-count').textContent = '';
 
-      const allFeeds = [...usFeedList, ...feeds.international, ...feeds.tech, ...feeds.science, ...feeds.odd, ...feeds.trucking];
+      const allFeeds = [...usFeedList, ...feeds.international, ...feeds.tech, ...feeds.odd, ...feeds.trucking];
       const batchData = await fetchBatch(allFeeds);
 
       // Tag US items with biasSide so compact stripes work
@@ -1340,13 +1315,11 @@
 
       const intItems = collectItems(batchData, feeds.international, 4).map(i => ({ ...i, biasSide: 'center' }));
       const techItems = collectItems(batchData, feeds.tech, 3).map(i => ({ ...i, biasSide: 'center' }));
-      const sciItems = collectItems(batchData, feeds.science, 3).map(i => ({ ...i, biasSide: 'center' }));
       const oddItems = collectItems(batchData, feeds.odd, 3).map(i => ({ ...i, biasSide: 'center' }));
 
       renderSection('us-grid', 'us-count', usItems, 12);
       renderSection('int-grid', 'int-count', intItems, 6);
       renderSection('tech-grid', 'tech-count', techItems, 6);
-      renderSection('science-grid', 'sci-count', sciItems, 6);
       renderSection('odd-grid', 'odd-count', oddItems, 6);
       renderSection('trucking-grid', 'trucking-count', allTruckingItems, 6);
 
@@ -1354,7 +1327,6 @@
       buildCompactTable(document.getElementById('us-compact'), usItems.slice(0,16), 'c-badge-politics', bias);
       buildCompactTable(document.getElementById('int-compact'), intItems.slice(0,8), 'c-badge-world', 'center');
       buildCompactTable(document.getElementById('tech-compact'), techItems.slice(0,8), 'c-badge-tech', 'center');
-      buildCompactTable(document.getElementById('science-compact'), sciItems.slice(0,8), 'c-badge-science', 'center');
       buildCompactTable(document.getElementById('odd-compact'), oddItems.slice(0,8), 'c-badge-odd', 'center');
       buildCompactTable(document.getElementById('trucking-compact'), allTruckingItems.slice(0,8), 'c-badge-trucking', 'center');
 
